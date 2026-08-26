@@ -1,0 +1,22 @@
+# Compilação e Artefatos do Backend
+backend/target/
+*.class
+
+# ====================================================
+# SEGREDOS — Nunca versionar estes arquivos
+# Os arquivos .example correspondentes SÃO versionados
+# ====================================================
+
+# Credenciais do backend (Supabase / banco de dados)
+backend/src/main/resources/application.properties
+
+# Credenciais do firmware (Wi-Fi, URL do servidor)
+firmware/esp32_telemetria/secrets.h
+
+# Variáveis de ambiente e segredos genéricos
+.env
+
+# Binários de Firmware (ESP32)
+*.elf
+*.bin
+*.hex

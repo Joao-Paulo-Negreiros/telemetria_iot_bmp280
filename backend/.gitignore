@@ -1,0 +1,45 @@
+### Arquivos de Documentação Inicial ###
+HELP.md
+
+### Compilação Maven e Binários ###
+target/
+*.jar
+*.war
+*.class
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Banco de Dados Local (H2) e Logs ###
+data/
+*.db
+*.mv.db
+*.trace.db
+*.log
+
+### IDEs e Editores (VS Code, IntelliJ, STS, NetBeans) ###
+.vscode/
+.idea/
+*.iws
+*.iml
+*.ipr
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### Temporários e Sistema Operacional ###
+.DS_Store
+*.tmp
+*.bak
