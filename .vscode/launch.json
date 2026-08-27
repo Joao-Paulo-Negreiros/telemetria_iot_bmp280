@@ -2,10 +2,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Spring Boot-BackendSensorApplication<backend-sensor>",
+            "name": "Spring Boot - TelemetriaApplication",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "mainClass": "com.projeto.bia.backend_sensor.BackendSensorApplication",
+            "mainClass": "com.ufc.telemetria.TelemetriaApplication",
             "projectName": "backend-sensor",
             "args": "",
             "envFile": "${workspaceFolder}/.env"

@@ -27,7 +27,7 @@ public class SensorController {
 
     // Busca a URL do application.properties (ex: google.script.url=SUA_URL_AQUI)
     // Se não achar, usa a URL padrão configurada após os dois pontos
-    @Value("${google.script.url:https://script.google.com/macros/s/AKfycbzDuUJvk973W22kyeVmse3haxHt0uc9-mt1f01ky_Mb07wIe4I9P2-rlc_7jeVZMcEb/exec}")
+    @Value("${google.script.url}")
     private String urlGoogleScript;
 
     public SensorController(SensorRepository repository) {
