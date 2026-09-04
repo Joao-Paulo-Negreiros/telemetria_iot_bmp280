@@ -1,20 +1,18 @@
 /*
- * Telemetria BIA — Firmware ESP32 (PRINCIPAL)
+ * Telemetria BIA — Firmware ESP32 (SD card + Deep Sleep)
  * ---------------------------------------------------------------------
- * Versão de produção: Deep Sleep via RTC timer + backup local em cartão SD.
- * Substitui a versão anterior baseada em delay() no loop().
+ * SEGUNDA ETAPA DO TESTE: depois de validar o SD sozinho
+ * (esp32_telemetria_sd_test.ino), esta versão soma o Deep Sleep.
  *
- * COMPORTAMENTO: o ESP32 acorda, lê os sensores, grava no SD, envia via
- * Wi-Fi/HTTP, desliga o rádio e volta a dormir. Todo o ciclo roda dentro
- * do setup() — o loop() fica vazio, pois o Deep Sleep reinicia a placa
- * a cada ciclo.
+ * MUDANÇA DE COMPORTAMENTO IMPORTANTE:
+ * Com Deep Sleep, o ESP32 REINICIA a cada ciclo — o setup() roda de novo
+ * do zero toda vez que ele acorda. Por isso toda a lógica (sensores, SD,
+ * Wi-Fi, envio HTTP) está dentro do setup(). O loop() fica vazio.
  *
- * PINAGEM:
+ * PINAGEM (igual ao teste anterior):
  *   BMP280  (I2C)     -> SDA = GPIO 21, SCL = GPIO 22
  *   DS18B20 (1-Wire)  -> GPIO 5
  *   Módulo SD (SPI)   -> CS = GPIO 4, SCK = GPIO 18, MISO = GPIO 19, MOSI = GPIO 23
- *
- * Requer secrets.h na mesma pasta (WIFI_SSID, WIFI_PASSWORD, SERVER_URL).
  */
 
 #include <WiFi.h>
@@ -26,15 +24,15 @@
 #include <SPI.h>
 #include <SD.h>
 #include "esp_sleep.h"
-#include "secrets.h"
+#include "secrets.h"  // Credenciais locais — NÃO versionado no Git
 
-// ⏱️ TEMPO DE SONO — 600s (10 min), conforme arquitetura definida do projeto.
-// Para testes rápidos, pode reduzir temporariamente (ex: 30), mas volte para
-// 600 antes de deixar rodando de forma contínua.
+// ⏱️ TEMPO DE SONO — AJUSTE AQUI
+// Para TESTE (ver ciclos rápidos hoje): 30 segundos
+// Para PRODUÇÃO (arquitetura original do projeto): 600 segundos (10 minutos)
 #define TEMPO_SONO_SEGUNDOS 600
 #define uS_PARA_S 1000000ULL
 
-// Contador de ciclos — sobrevive ao Deep Sleep (memória RTC)
+// Contador de ciclos — sobrevive ao Deep Sleep (fica na memória RTC)
 RTC_DATA_ATTR int contadorCiclos = 0;
 
 const char* ssid        = WIFI_SSID;
@@ -97,7 +95,7 @@ void enviarLeitura(const char* nomeSensor, float temperatura, float pressao) {
 
 void setup() {
   Serial.begin(115200);
-  delay(200);
+  delay(200); // Pequena folga para o monitor serial reconectar após o reset
 
   contadorCiclos++;
   Serial.println("=====================================");
@@ -160,7 +158,7 @@ void setup() {
   float temperaturaDS = sensorDS.getTempCByIndex(0);
   enviarLeitura("DS18B20", temperaturaDS, 0.0);
 
-  // Desliga o radio explicitamente antes de dormir
+  // Desliga o radio explicitamente antes de dormir (economia de energia)
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);
 
@@ -171,6 +169,7 @@ void setup() {
 
   esp_sleep_enable_timer_wakeup(TEMPO_SONO_SEGUNDOS * uS_PARA_S);
   esp_deep_sleep_start();
+  // A execução NUNCA chega aqui — o ESP32 reinicia ao acordar e volta pro setup()
 }
 
 void loop() {
