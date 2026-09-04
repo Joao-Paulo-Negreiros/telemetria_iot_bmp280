@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.bind.annotation.RequestMethod;
+
 import java.util.List;
 
 @CrossOrigin(origins = "*")
@@ -70,8 +72,8 @@ public class SensorController {
                 .body(csv.toString());
     }
 
-    // 4. Rota para limpar o banco de dados (Alterado para DeleteMapping)
-    @DeleteMapping("/limpar")
+    // 4. Rota para limpar o banco de dados (aceita GET e DELETE)
+    @RequestMapping(value = "/limpar", method = {RequestMethod.GET, RequestMethod.DELETE})
     public ResponseEntity<String> limparBanco() {
         repository.deleteAll();
         logger.warn("Banco de dados zerado via requisição HTTP.");
