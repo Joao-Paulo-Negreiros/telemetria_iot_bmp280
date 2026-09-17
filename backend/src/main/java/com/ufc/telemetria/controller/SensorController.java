@@ -28,15 +28,15 @@ public class SensorController {
         this.googleSheetsService = googleSheetsService;
     }
 
-    // 1. Rota para o ESP32 enviar os dados
+    // 1. Rota para o ESP32 enviar os dados consolidados (Payload Único)
     @PostMapping("/enviar")
     public ResponseEntity<LeituraSensor> receberDados(@RequestBody LeituraSensor dados) {
         
         // LOG ESTRATÉGICO PARA DEBUG
-        logger.info("JSON RECEBIDO -> Sensor: {} | Temp: {} | Pressão: {} | Umidade: {}", 
-            dados.getSensor(), dados.getTemperatura(), dados.getPressao(), dados.getUmidade());
+        logger.info("JSON RECEBIDO -> Temp BMP: {} | Pressão: {} | Temp AHT: {} | Umidade: {}", 
+            dados.getTemperaturaBmp(), dados.getPressao(), dados.getTemperaturaAht(), dados.getUmidade());
 
-        // Salva no banco de dados
+        // Salva no banco de dados (agora em formato largo)
         LeituraSensor salvo = repository.save(dados);
         
         // Dispara envio assíncrono para o Google Sheets
@@ -51,23 +51,23 @@ public class SensorController {
         return ResponseEntity.ok(repository.findAll());
     }
 
-    // 3. Rota para baixar o CSV atualizado (Agora com Umidade)
+    // 3. Rota para baixar o CSV atualizado (Formato Largo)
     @GetMapping("/csv")
     public ResponseEntity<String> baixarCsv() {
         List<LeituraSensor> leituras = repository.findAll();
-        StringBuilder csv = new StringBuilder("ID;TEMPERATURA;PRESSAO;UMIDADE;SENSOR;DATA_HORA\n");
+        StringBuilder csv = new StringBuilder("ID;TEMP_BMP;PRESSAO;TEMP_AHT;UMIDADE;DATA_HORA\n");
 
         for (LeituraSensor l : leituras) {
             csv.append(l.getId()).append(";")
-               .append(l.getTemperatura()).append(";")
+               .append(l.getTemperaturaBmp()).append(";")
                .append(l.getPressao()).append(";")
-               .append(l.getUmidade()).append(";") // Adicionado aqui
-               .append(l.getSensor()).append(";")
+               .append(l.getTemperaturaAht()).append(";")
+               .append(l.getUmidade()).append(";")
                .append(l.getDataHora()).append("\n");
         }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"dados_telemetria.csv\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"dados_telemetria_largo.csv\"")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(csv.toString());
     }
