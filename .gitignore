@@ -20,3 +20,5 @@ firmware/esp32_telemetria/secrets.h
 *.elf
 *.bin
 *.hex
+**/secrets.h
+secrets.h
