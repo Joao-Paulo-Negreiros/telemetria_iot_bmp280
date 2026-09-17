@@ -69,4 +69,13 @@ public class LeituraSensor {
         this.sensor = sensor;
     }
 
+
+    private Double umidade;
+    public Double getUmidade() {
+        return umidade;
+    }
+    
+    public void setUmidade(Double umidade){
+        this.umidade = umidade;
+    }
 }

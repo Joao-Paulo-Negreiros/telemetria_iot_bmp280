@@ -20,7 +20,6 @@ public class SensorController {
 
     private static final Logger logger = LoggerFactory.getLogger(SensorController.class);
 
-    // Injeção de dependência recomendada via Construtor
     private final SensorRepository repository;
     private final GoogleSheetsService googleSheetsService;
 
@@ -32,36 +31,39 @@ public class SensorController {
     // 1. Rota para o ESP32 enviar os dados
     @PostMapping("/enviar")
     public ResponseEntity<LeituraSensor> receberDados(@RequestBody LeituraSensor dados) {
+        
+        // LOG ESTRATÉGICO PARA DEBUG
+        logger.info("JSON RECEBIDO -> Sensor: {} | Temp: {} | Pressão: {} | Umidade: {}", 
+            dados.getSensor(), dados.getTemperatura(), dados.getPressao(), dados.getUmidade());
 
         // Salva no banco de dados
         LeituraSensor salvo = repository.save(dados);
-        logger.info("Salvo no banco com ID: {} | Sensor: {}", salvo.getId(), salvo.getSensor());
-
-        // Dispara envio assíncrono para o Google Sheets (não bloqueia o retorno 201)
+        
+        // Dispara envio assíncrono para o Google Sheets
         googleSheetsService.enviarParaSheets(salvo);
 
-        // Retorna status 201 (Created)
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    // 2. Rota para o Dashboard HTML ler os dados para o gráfico
+    // 2. Rota para o Dashboard HTML
     @GetMapping("/dados")
     public ResponseEntity<List<LeituraSensor>> listarDados() {
         return ResponseEntity.ok(repository.findAll());
     }
 
-    // 3. Rota para baixar o CSV atualizado
+    // 3. Rota para baixar o CSV atualizado (Agora com Umidade)
     @GetMapping("/csv")
     public ResponseEntity<String> baixarCsv() {
         List<LeituraSensor> leituras = repository.findAll();
-        StringBuilder csv = new StringBuilder("ID;TEMPERATURA;PRESSAO;SENSOR;DATA_HORA\n");
+        StringBuilder csv = new StringBuilder("ID;TEMPERATURA;PRESSAO;UMIDADE;SENSOR;DATA_HORA\n");
 
         for (LeituraSensor l : leituras) {
             csv.append(l.getId()).append(";")
-                    .append(l.getTemperatura()).append(";")
-                    .append(l.getPressao()).append(";")
-                    .append(l.getSensor()).append(";")
-                    .append(l.getDataHora()).append("\n");
+               .append(l.getTemperatura()).append(";")
+               .append(l.getPressao()).append(";")
+               .append(l.getUmidade()).append(";") // Adicionado aqui
+               .append(l.getSensor()).append(";")
+               .append(l.getDataHora()).append("\n");
         }
 
         return ResponseEntity.ok()
@@ -70,11 +72,11 @@ public class SensorController {
                 .body(csv.toString());
     }
 
-    // 4. Rota para limpar o banco de dados
+    // 4. Rota para limpar o banco
     @DeleteMapping("/limpar")
     public ResponseEntity<String> limparBanco() {
         repository.deleteAll();
         logger.warn("Banco de dados zerado via requisição HTTP.");
-        return ResponseEntity.ok("Banco de dados zerado com sucesso! Pronto para nova coleta.");
+        return ResponseEntity.ok("Banco de dados zerado com sucesso!");
     }
 }
