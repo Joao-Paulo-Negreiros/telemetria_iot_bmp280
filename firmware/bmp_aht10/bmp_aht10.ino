@@ -1,10 +1,11 @@
 /*
  * Telemetria BIA — Firmware ESP32 (BMP280 + AHT10 + SD + Deep Sleep)
- * Atualizado: Payload Único (Formato Largo)  17/09/2026
+ * Atualizado: Payload Único + HTTPS (Nuvem)  21/09/2026
  */
 
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_AHTX0.h>
@@ -61,16 +62,24 @@ void logNoSD(float tempBMP, float pressao, float tempAHT, float umidade) {
   }
 }
 
-// Dispara um único POST contendo as 4 grandezas
+// Dispara um único POST contendo as 4 grandezas via HTTPS
 void enviarLeituraUnica(float tempBMP, float pressao, float tempAHT, float umidade) {
   logNoSD(tempBMP, pressao, tempAHT, umidade);
 
   if (WiFi.status() == WL_CONNECTED) {
+    // 1. Cria o cliente Wi-Fi com suporte a SSL/TLS (HTTPS)
+    WiFiClientSecure client;
+    
+    // 2. Ignora a validação restrita do certificado do servidor (Ideal para projetos acadêmicos)
+    client.setInsecure(); 
+    
     HTTPClient http;
-    http.begin(urlServidor);
+    
+    // 3. Inicia a conexão HTTP passando o cliente seguro e a URL
+    http.begin(client, urlServidor); 
     http.addHeader("Content-Type", "application/json");
 
-    // Montando o JSON no formato largo (deve bater com as variáveis do LeituraSensor.java)
+    // Montando o JSON no formato largo
     String json = "{";
     json += "\"temperaturaBmp\":" + String(tempBMP, 2) + ",";
     json += "\"pressao\":" + String(pressao, 2) + ",";
@@ -79,7 +88,7 @@ void enviarLeituraUnica(float tempBMP, float pressao, float tempAHT, float umida
     json += "}";
 
     int resposta = http.POST(json);
-    Serial.print("Payload Unico -> HTTP Status: ");
+    Serial.print("Payload Unico -> HTTPS Status: ");
     Serial.println(resposta);
     http.end();
   } else {
