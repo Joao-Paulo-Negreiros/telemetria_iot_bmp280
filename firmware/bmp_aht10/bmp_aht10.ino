@@ -19,9 +19,9 @@
 
 RTC_DATA_ATTR int contadorCiclos = 0;
 
-const char* ssid        = WIFI_SSID;
-const char* password    = WIFI_PASSWORD;
-const char* urlServidor = SERVER_URL;
+const char* ssid      = WIFI_SSID;
+const char* password  = WIFI_PASSWORD;
+const char* serverUrl = SERVER_URL;
 
 Adafruit_BMP280 bmp;
 Adafruit_AHTX0 aht;
@@ -30,7 +30,7 @@ const int SD_CS_PIN = 4;
 const char* LOG_FILE = "/dados.csv";
 bool sdDisponivel = false;
 
-// Atualizado para gravar as 4 grandezas na mesma linha
+// Grava as 4 grandezas na mesma linha do cartão SD
 void logNoSD(float tempBMP, float pressao, float tempAHT, float umidade) {
   if (!sdDisponivel) return;
 
@@ -67,19 +67,18 @@ void enviarLeituraUnica(float tempBMP, float pressao, float tempAHT, float umida
   logNoSD(tempBMP, pressao, tempAHT, umidade);
 
   if (WiFi.status() == WL_CONNECTED) {
-    // 1. Cria o cliente Wi-Fi com suporte a SSL/TLS (HTTPS)
+    // 1. Cria o cliente com suporte a TLS/SSL
     WiFiClientSecure client;
-    
-    // 2. Ignora a validação restrita do certificado do servidor (Ideal para projetos acadêmicos)
-    client.setInsecure(); 
+    client.setInsecure(); // Ignora a árvore de certificados raiz (ideal para ESP32)
     
     HTTPClient http;
+    http.setTimeout(15000); // 15s de tolerância para a nuvem
     
-    // 3. Inicia a conexão HTTP passando o cliente seguro e a URL
-    http.begin(client, urlServidor); 
+    // 2. Inicia a conexão com a URL de produção
+    http.begin(client, serverUrl); 
     http.addHeader("Content-Type", "application/json");
 
-    // Montando o JSON no formato largo
+    // 3. Monta o JSON idêntico ao modelo testado no PowerShell
     String json = "{";
     json += "\"temperaturaBmp\":" + String(tempBMP, 2) + ",";
     json += "\"pressao\":" + String(pressao, 2) + ",";
@@ -90,6 +89,16 @@ void enviarLeituraUnica(float tempBMP, float pressao, float tempAHT, float umida
     int resposta = http.POST(json);
     Serial.print("Payload Unico -> HTTPS Status: ");
     Serial.println(resposta);
+
+    if (resposta > 0) {
+      String payloadResposta = http.getString();
+      Serial.print("Resposta da API: ");
+      Serial.println(payloadResposta);
+    } else {
+      Serial.print("Falha na requisicao. Erro HTTPClient: ");
+      Serial.println(http.errorToString(resposta).c_str());
+    }
+
     http.end();
   } else {
     Serial.println("Wi-Fi indisponivel, leitura salva apenas no SD.");
@@ -101,7 +110,7 @@ void setup() {
   delay(200);
 
   contadorCiclos++;
-  Serial.println("=====================================");
+  Serial.println("\n=====================================");
   Serial.print("Ciclo numero: ");
   Serial.println(contadorCiclos);
 
@@ -109,6 +118,8 @@ void setup() {
 
   if (!bmp.begin(0x76)) {
     Serial.println("Erro: Nao foi possivel encontrar o sensor BMP280!");
+  } else {
+    Serial.println("Sensor BMP280 detectado com sucesso!");
   }
   
   if (!aht.begin()) {
@@ -123,7 +134,7 @@ void setup() {
     sdDisponivel = false;
   } else {
     sdDisponivel = true;
-    Serial.println("Cartao SD detectado.");
+    Serial.println("Cartao SD detectado com sucesso.");
     if (!SD.exists(LOG_FILE)) {
       File arquivo = SD.open(LOG_FILE, FILE_WRITE);
       if (arquivo) {
@@ -143,6 +154,8 @@ void setup() {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nConectado a rede Wi-Fi!");
+    Serial.print("IP obtido: ");
+    Serial.println(WiFi.localIP());
   } else {
     Serial.println("\nNao foi possivel conectar ao Wi-Fi.");
   }
@@ -153,8 +166,7 @@ void setup() {
   float temperaturaBMP = bmp.readTemperature();
   float pressaoBMP = bmp.readPressure() / 100.0F;
   
-  // Respiro de 100ms no barramento I2C para evitar colisão
-  delay(100); 
+  delay(100); // Intervalo de segurança no barramento I2C
 
   // 2. Lê AHT10
   sensors_event_t eventHum, eventTemp;
@@ -162,10 +174,10 @@ void setup() {
   float temperaturaAHT = eventTemp.temperature;
   float umidadeAHT = eventHum.relative_humidity;
 
-  // 3. Envia e grava tudo de uma vez
+  // 3. Dispara envio consolidado e log local
   enviarLeituraUnica(temperaturaBMP, pressaoBMP, temperaturaAHT, umidadeAHT);
 
-  // --- FIM DA LEITURA ---
+  // --- DESLIGAMENTO E DEEP SLEEP ---
 
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);
