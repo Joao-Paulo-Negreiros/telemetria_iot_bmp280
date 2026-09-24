@@ -72,7 +72,7 @@ void enviarLeituraUnica(float tempBMP, float pressao, float tempAHT, float umida
     client.setInsecure(); // Ignora a árvore de certificados raiz (ideal para ESP32)
     
     HTTPClient http;
-    http.setTimeout(15000); // 15s de tolerância para a nuvem
+    http.setTimeout(60000); // 60s de tolerância para a nuvem
     
     // 2. Inicia a conexão com a URL de produção
     http.begin(client, serverUrl); 
