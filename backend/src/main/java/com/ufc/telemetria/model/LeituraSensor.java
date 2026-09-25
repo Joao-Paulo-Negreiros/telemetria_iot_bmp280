@@ -1,7 +1,13 @@
 package com.ufc.telemetria.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 public class LeituraSensor {
@@ -33,10 +39,13 @@ public class LeituraSensor {
 
     @PrePersist
     protected void onCreate() {
-        this.dataHora = LocalDateTime.now();
+        this.dataHora = LocalDateTime.now(
+                ZoneId.of("America/Fortaleza")
+        );
     }
 
     // Getters e Setters
+
     public Long getId() {
         return id;
     }
