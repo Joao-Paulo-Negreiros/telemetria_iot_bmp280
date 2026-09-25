@@ -18,9 +18,9 @@ public class LeituraSensor {
     private Double temperaturaAht;
     private Double umidade;
 
-    // Altura 3: AHT21 (Barramento I2C Principal)
-    private Double temperaturaAht21;
-    private Double umidadeAht21;
+    // Altura 3: AHT30 (Barramento I2C Principal)
+    private Double temperaturaAht30;
+    private Double umidadeAht30;
 
     // Qualidade do ar: ENS160
     private Integer eco2;
@@ -77,20 +77,20 @@ public class LeituraSensor {
         this.umidade = umidade;
     }
 
-    public Double getTemperaturaAht21() {
-        return temperaturaAht21;
+    public Double getTemperaturaAht30() {
+        return temperaturaAht30;
     }
 
-    public void setTemperaturaAht21(Double temperaturaAht21) {
-        this.temperaturaAht21 = temperaturaAht21;
+    public void setTemperaturaAht30(Double temperaturaAht30) {
+        this.temperaturaAht30 = temperaturaAht30;
     }
 
-    public Double getUmidadeAht21() {
-        return umidadeAht21;
+    public Double getUmidadeAht30() {
+        return umidadeAht30;
     }
 
-    public void setUmidadeAht21(Double umidadeAht21) {
-        this.umidadeAht21 = umidadeAht21;
+    public void setUmidadeAht30(Double umidadeAht30) {
+        this.umidadeAht30 = umidadeAht30;
     }
 
     public Integer getEco2() {

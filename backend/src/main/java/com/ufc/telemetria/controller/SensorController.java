@@ -33,10 +33,10 @@ public class SensorController {
     public ResponseEntity<LeituraSensor> receberDados(@RequestBody LeituraSensor dados) {
         
         // Log detalhado para auditar no Render
-        logger.info("JSON RECEBIDO -> BMP: {}°C/{}hPa | AHT10: {}°C/{}% | AHT21: {}°C/{}% | eCO2: {} ppm | TVOC: {} ppb", 
+        logger.info("JSON RECEBIDO -> BMP: {}°C/{}hPa | AHT10: {}°C/{}% | AHT30: {}°C/{}% | eCO2: {} ppm | TVOC: {} ppb", 
             dados.getTemperaturaBmp(), dados.getPressao(), 
             dados.getTemperaturaAht(), dados.getUmidade(),
-            dados.getTemperaturaAht21(), dados.getUmidadeAht21(),
+            dados.getTemperaturaAht30(), dados.getUmidadeAht30(),
             dados.getEco2(), dados.getTvoc());
 
         // Salva no Supabase
@@ -58,7 +58,7 @@ public class SensorController {
     @GetMapping("/csv")
     public ResponseEntity<String> baixarCsv() {
         List<LeituraSensor> leituras = repository.findAll();
-        StringBuilder csv = new StringBuilder("ID;TEMP_BMP;PRESSAO;TEMP_AHT10;UMIDADE_AHT10;TEMP_AHT21;UMIDADE_AHT21;ECO2;TVOC;DATA_HORA\n");
+        StringBuilder csv = new StringBuilder("ID;TEMP_BMP;PRESSAO;TEMP_AHT10;UMIDADE_AHT10;TEMP_AHT30;UMIDADE_AHT30;ECO2;TVOC;DATA_HORA\n");
 
         for (LeituraSensor l : leituras) {
             csv.append(l.getId()).append(";")
@@ -66,8 +66,8 @@ public class SensorController {
                .append(l.getPressao()).append(";")
                .append(l.getTemperaturaAht()).append(";")
                .append(l.getUmidade()).append(";")
-               .append(l.getTemperaturaAht21()).append(";")
-               .append(l.getUmidadeAht21()).append(";")
+               .append(l.getTemperaturaAht30()).append(";")
+               .append(l.getUmidadeAht30()).append(";")
                .append(l.getEco2()).append(";")
                .append(l.getTvoc()).append(";")
                .append(l.getDataHora()).append("\n");
