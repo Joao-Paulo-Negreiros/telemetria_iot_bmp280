@@ -28,15 +28,18 @@ public class SensorController {
         this.googleSheetsService = googleSheetsService;
     }
 
-    // 1. Rota para o ESP32 enviar os dados consolidados (Payload Único)
+    // 1. Rota para o ESP32 enviar os dados consolidados (Payload Único - 3 Alturas + Qualidade do Ar)
     @PostMapping("/enviar")
     public ResponseEntity<LeituraSensor> receberDados(@RequestBody LeituraSensor dados) {
         
-        // LOG ESTRATÉGICO PARA DEBUG
-        logger.info("JSON RECEBIDO -> Temp BMP: {} | Pressão: {} | Temp AHT: {} | Umidade: {}", 
-            dados.getTemperaturaBmp(), dados.getPressao(), dados.getTemperaturaAht(), dados.getUmidade());
+        // Log detalhado para auditar no Render
+        logger.info("JSON RECEBIDO -> BMP: {}°C/{}hPa | AHT10: {}°C/{}% | AHT21: {}°C/{}% | eCO2: {} ppm | TVOC: {} ppb", 
+            dados.getTemperaturaBmp(), dados.getPressao(), 
+            dados.getTemperaturaAht(), dados.getUmidade(),
+            dados.getTemperaturaAht21(), dados.getUmidadeAht21(),
+            dados.getEco2(), dados.getTvoc());
 
-        // Salva no banco de dados (agora em formato largo)
+        // Salva no Supabase
         LeituraSensor salvo = repository.save(dados);
         
         // Dispara envio assíncrono para o Google Sheets
@@ -51,11 +54,11 @@ public class SensorController {
         return ResponseEntity.ok(repository.findAll());
     }
 
-    // 3. Rota para baixar o CSV atualizado (Formato Largo)
+    // 3. Rota para baixar o CSV atualizado (Todas as grandezas incluídas)
     @GetMapping("/csv")
     public ResponseEntity<String> baixarCsv() {
         List<LeituraSensor> leituras = repository.findAll();
-        StringBuilder csv = new StringBuilder("ID;TEMP_BMP;PRESSAO;TEMP_AHT;UMIDADE;DATA_HORA\n");
+        StringBuilder csv = new StringBuilder("ID;TEMP_BMP;PRESSAO;TEMP_AHT10;UMIDADE_AHT10;TEMP_AHT21;UMIDADE_AHT21;ECO2;TVOC;DATA_HORA\n");
 
         for (LeituraSensor l : leituras) {
             csv.append(l.getId()).append(";")
@@ -63,11 +66,15 @@ public class SensorController {
                .append(l.getPressao()).append(";")
                .append(l.getTemperaturaAht()).append(";")
                .append(l.getUmidade()).append(";")
+               .append(l.getTemperaturaAht21()).append(";")
+               .append(l.getUmidadeAht21()).append(";")
+               .append(l.getEco2()).append(";")
+               .append(l.getTvoc()).append(";")
                .append(l.getDataHora()).append("\n");
         }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"dados_telemetria_largo.csv\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"dados_telemetria_completo.csv\"")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(csv.toString());
     }

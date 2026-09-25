@@ -10,11 +10,21 @@ public class LeituraSensor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Novo formato largo: colunas dedicadas por grandeza
+    // Altura 1: BMP280
     private Double temperaturaBmp;
     private Double pressao;
+
+    // Altura 2: AHT10 (Barramento I2C Secundário)
     private Double temperaturaAht;
     private Double umidade;
+
+    // Altura 3: AHT21 (Barramento I2C Principal)
+    private Double temperaturaAht21;
+    private Double umidadeAht21;
+
+    // Qualidade do ar: ENS160
+    private Integer eco2;
+    private Integer tvoc;
 
     private LocalDateTime dataHora;
 
@@ -65,6 +75,38 @@ public class LeituraSensor {
 
     public void setUmidade(Double umidade) {
         this.umidade = umidade;
+    }
+
+    public Double getTemperaturaAht21() {
+        return temperaturaAht21;
+    }
+
+    public void setTemperaturaAht21(Double temperaturaAht21) {
+        this.temperaturaAht21 = temperaturaAht21;
+    }
+
+    public Double getUmidadeAht21() {
+        return umidadeAht21;
+    }
+
+    public void setUmidadeAht21(Double umidadeAht21) {
+        this.umidadeAht21 = umidadeAht21;
+    }
+
+    public Integer getEco2() {
+        return eco2;
+    }
+
+    public void setEco2(Integer eco2) {
+        this.eco2 = eco2;
+    }
+
+    public Integer getTvoc() {
+        return tvoc;
+    }
+
+    public void setTvoc(Integer tvoc) {
+        this.tvoc = tvoc;
     }
 
     public LocalDateTime getDataHora() {
