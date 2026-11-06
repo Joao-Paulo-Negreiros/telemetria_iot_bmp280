@@ -137,6 +137,8 @@ public class SensorController {
 
         LeituraValidacao salvo = validacaoRepository.save(dados);
 
+        googleSheetsService.enviarValidacaoParaSheets(salvo);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 

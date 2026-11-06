@@ -3,12 +3,22 @@ function doPost(e) {
   try {
 
     // ====================================================
+    // LEITURA DO JSON
+    // ====================================================
+
+    var dadosRecebidos =
+      JSON.parse(e.postData.contents);
+
+    // ====================================================
     // PLANILHA
     // ====================================================
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    var nomeAba = "casa amarela";
+    var nomeAba =
+      dadosRecebidos.tipo === "validacao"
+        ? "validacao"
+        : "casa amarela";
 
     var sheet = ss.getSheetByName(nomeAba);
 
@@ -39,13 +49,6 @@ function doPost(e) {
     sheet
       .getRange(1, 1, 1, cabecalho.length)
       .setValues([cabecalho]);
-
-    // ====================================================
-    // LEITURA DO JSON
-    // ====================================================
-
-    var dadosRecebidos =
-      JSON.parse(e.postData.contents);
 
     // ====================================================
     // BMP280
